@@ -9,6 +9,13 @@ Make a simple C2 / Implant Pair.  Prepare to extend to more advanced features.
 
 Make one in GraalVM (https://www.graalvm.org/)?
 
+# Technologies
+
+  - [Pyramid (WebApp Framework)](https://trypyramid.com/)
+  - [Cornice (REST Framework)](https://cornice.readthedocs.io/en/latest/)
+  - [SQLAlchemy (ORM)](http://www.sqlalchemy.org/)
+  - [Pyramid_Celery (Queues)](https://github.com/sontek/pyramid_celery)
+  
 
 # Notes
 
@@ -45,12 +52,7 @@ DB entries via models for tasking and such.
   - Keep things obscure.  API can be something like `/api/game/implantcodename`
   - Don't just use an ORM and hope for the best. Secure and validate all endpoints.
 
-# Technologies
 
-  - [Pyramid (WebApp Framework)](https://trypyramid.com/)
-  - [Cornice (REST Framework)](https://cornice.readthedocs.io/en/latest/)
-  - [SQLAlchemy (ORM)](http://www.sqlalchemy.org/)
-  - [Pyramid_Celery (Queues)](https://github.com/sontek/pyramid_celery)
 
 ## Pyramid Instructions
 

@@ -15,7 +15,10 @@ from ..models import (
     get_session_factory,
     get_tm_session,
     )
-# from ..models import MyModel
+from ..models import Address
+from ..models import Client
+from ..models import Status
+from ..models import Task
 
 
 def usage(argv):
@@ -36,12 +39,24 @@ def main(argv=sys.argv):
     engine = get_engine(settings)
     Base.metadata.create_all(engine)
 
-    """
     session_factory = get_session_factory(engine)
 
     with transaction.manager:
         dbsession = get_tm_session(session_factory, transaction.manager)
 
-        model = MyModel(name='one', value=1)
-        dbsession.add(model)
+        setup_statuses(dbsession)
+
+
+def setup_statuses(session):
     """
+    Fills the database with the standard statuses
+    :return:
+    """
+
+    if len(session.query(Status).all()) > 0:
+        return
+
+    statuses = Status.generate_statuses()
+
+    for status in statuses:
+        session.add(status)
