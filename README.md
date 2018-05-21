@@ -20,6 +20,7 @@ Make one in GraalVM (https://www.graalvm.org/)?
 # Notes
 
 ## Querying
+When in a request, the `request.dbsession` variable is your sqlalchemy session
 
 ```python
     try:

@@ -32,4 +32,5 @@ NAMING_CONVENTION = {
 }
 
 metadata = MetaData(naming_convention=NAMING_CONVENTION)
-Base = declarative_base(cls=MetaBase, metadata=metadata)
+# TODO Consider implementing the above
+Base = declarative_base(cls=MetaBase)
