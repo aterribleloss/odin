@@ -68,9 +68,7 @@ def includeme(config):
     # use pyramid_retry to retry a request when transient exceptions occur
     config.include('pyramid_retry')
 
-    eng = get_engine(settings)
-    Base.metadata.create_all(eng) # TODO remove this line once using a real db
-    session_factory = get_session_factory(eng)
+    session_factory = get_session_factory(get_engine(settings))
     config.registry['dbsession_factory'] = session_factory
 
     # make request.dbsession available for use in Pyramid

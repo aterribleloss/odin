@@ -9,6 +9,7 @@ This module includes the SQLAlchemy model for ip objects.
 from sqlalchemy import Column, String, TIMESTAMP, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from .meta import Base
+import json
 
 
 class Address(Base):
@@ -18,6 +19,10 @@ class Address(Base):
     Provides storage and tracking of remote addresses. At first just remote IP,
     future goals is to resolve domain names, support other protocols, etc.
     """
+    def to_json(self):
+        return {'address': self.address, 'first_seen': self.first_seen,
+                'last_seen': self.last_seen}
+
     address = Column(String, nullable=False)
     last_seen = Column(TIMESTAMP(timezone=True))
     first_seen = Column(TIMESTAMP(timezone=True))

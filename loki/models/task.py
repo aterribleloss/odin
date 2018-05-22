@@ -15,6 +15,13 @@ class Task(Base):
 
     Provides commands and stores results
     """
+    def to_json(self):
+        return {'tuid': self.tuid, 'command': self.command,
+                'status': self.status.name, 'results': self.results,
+                'client': self.client.cuid, 'created': self.created,
+                'completed': self.completed}
+
+    tuid = Column(String, nullable=False)
     command = Column(String, nullable=False)
     results = Column(String)
     created = Column(TIMESTAMP(timezone=True))
