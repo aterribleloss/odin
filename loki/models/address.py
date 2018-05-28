@@ -18,6 +18,8 @@ class Address(Base):
 
     Provides storage and tracking of remote addresses. At first just remote IP,
     future goals is to resolve domain names, support other protocols, etc.
+
+    TODO need to make this many-to-many for clients <-> addresses, normalize.
     """
     def to_json(self):
         return {'address': self.address, 'first_seen': self.first_seen,

@@ -10,6 +10,6 @@ def main(global_config, **settings):
     config.include('.routes')
     config.include('.tasks')
     config.scan()
-    config.configure_celery(global_config['__file__'])
+    # config.configure_celery(global_config['__file__'])
     config.add_renderer('json', custom_json_renderer())
     return config.make_wsgi_app()
