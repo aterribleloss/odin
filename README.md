@@ -16,46 +16,7 @@ Make one in GraalVM (https://www.graalvm.org/)?
   - [SQLAlchemy (ORM)](http://www.sqlalchemy.org/)
   - [Pyramid_Celery (Queues)](https://github.com/sontek/pyramid_celery)
   
-
-# Notes
-
-## Querying
-When in a request, the `request.dbsession` variable is your sqlalchemy session
-
-```python
-    try:
-        query = request.dbsession.query(MyModel)
-        one = query.filter(MyModel.name == 'one').first()
-    except DBAPIError:
-        return Response(db_err_msg, content_type='text/plain', status=500)
-```
-
-### Queueing
-In the case of needing queueing these notes are helpful.  I'm changing from using a queue as primary mechanism to using
-DB entries via models for tasking and such.
-
-  - Run `rabbitmq-server` (feel free to run in the background with `rabbitmq-server -detatched`)
-  - Configure RabbitMQ
-    - $ rabbitmqctl add_user myuser mypassword
-    - $ rabbitmqctl add_vhost myvhost
-    - $ rabbitmqctl set_user_tags myuser mytag
-    - $ rabbitmqctl set_permissions -p myvhost myuser ".*" ".*" ".*"
-  - Never outright kill the server, just use `rabbitmqctl stop` to gracefully stop the server.
-  - Management console at http://localhost:15672/#/  with guest:guest for local attachments
-  - Fire up `celery worker -A loki.tasks -E --ini development.ini` to run the worker.
-
-#### Development Notes
-  
-  - When calling a task, you must use `method.delay(params)` instead of the usual `method.params()`
-  - Parameters sent to a task must be JSON serializable (see https://docs.python.org/3/library/json.html)
-# Thoughts
-
-  - Keep things obscure.  API can be something like `/api/game/implantcodename`
-  - Don't just use an ORM and hope for the best. Secure and validate all endpoints.
-
-
-
-## Pyramid Instructions
+# Running
 
 ```
 - Change directory into your newly created project.
@@ -73,3 +34,39 @@ DB entries via models for tasking and such.
 - Run your project.
     env/bin/pserve development.ini
 ```
+
+# Notes
+
+## Querying
+When in a request, the `request.dbsession` variable is your sqlalchemy session
+
+```python
+    try:
+        query = request.dbsession.query(MyModel)
+        one = query.filter(MyModel.name == 'one').first()
+    except DBAPIError:
+        return Response(db_err_msg, content_type='text/plain', status=500)
+```
+
+### Queueing
+In the case of needing queueing these notes are helpful.  I'm changing from using a queue as primary mechanism to using
+DB entries via models for tasking and such. Queuing should be setup for the listening post component.
+
+  - Run `rabbitmq-server` (feel free to run in the background with `rabbitmq-server -detatched`)
+  - Configure RabbitMQ
+    - $ rabbitmqctl add_user myuser mypassword
+    - $ rabbitmqctl add_vhost myvhost
+    - $ rabbitmqctl set_user_tags myuser mytag
+    - $ rabbitmqctl set_permissions -p myvhost myuser ".*" ".*" ".*"
+  - Never outright kill the server, just use `rabbitmqctl stop` to gracefully stop the server.
+  - Management console at http://localhost:15672/#/  with guest:guest for local attachments
+  - Fire up `celery worker -A loki.tasks -E --ini development.ini` to run the worker.
+
+#### Development Notes
+  
+  - When calling a task, you must use `method.delay(params)` instead of the usual `method.params()`
+  - Parameters sent to a task must be JSON serializable (see https://docs.python.org/3/library/json.html)
+
+##### Thoughts
+  - Keep things obscure.  API can be something like `/api/game/implantcodename`
+  - Don't just use an ORM and hope for the best. Secure and validate all endpoints.

@@ -83,10 +83,8 @@ def get_login(request):
                         shell_hint=request.POST['ehlo'],
                         first_seen=now, last_seen=now)
         request.dbsession.add(client)
-        address = Address(address=request.environ['REMOTE_ADDR'],
-                          first_seen=now, last_seen=now)
-        address.client = client
-        request.dbsession.add(address)
+        add_or_update_address(request.dbsession, client,
+                              request.environ['REMOTE_ADDR'])
         return {'cuid': client.cuid, 'key': client.key}
 
     raise HTTPNotFound()  # Return 404 in unexpected cases, cover tracks
@@ -111,15 +109,9 @@ def get_task(request):
                                                   key=key).one()
             client.last_seen = now
 
-            addy = request.environ['REMOTE_ADDR']
-            # See if this address is already associated with us
-            if sesh.query(Address).filter_by(address=addy).count():
-                address = sesh.query(Address).filter_by(address=addy).one()
-                address.last_seen = now
-            else: # Create a new address if it's not already there
-                address = Address(address=addy, first_seen=now, last_seen=now)
-                address.client = client
-                request.dbsession.add(address)
+            add_or_update_address(request.dbsession, client,
+                                  request.environ['REMOTE_ADDR'])
+
             # Get pending status
             pending = sesh.query(Status).filter_by(pending=True).one()
             if sesh.query(Task).filter_by(client=client,
@@ -155,15 +147,9 @@ def add_results(request):
                                                   key=key).one()
             client.last_seen = now
 
-            addy = request.environ['REMOTE_ADDR']
-            # See if this address is already associated with us
-            if sesh.query(Address).filter_by(address=addy).count():
-                address = sesh.query(Address).filter_by(address=addy).one()
-                address.last_seen = now
-            else:  # Create a new address if it's not already there
-                address = Address(address=addy, first_seen=now, last_seen=now)
-                address.client = client
-                request.dbsession.add(address)
+            add_or_update_address(request.dbsession, client,
+                                  request.environ['REMOTE_ADDR'])
+            
             # Get running status
             running_status = sesh.query(Status).filter_by(running=True).one()
             if sesh.query(Task).filter_by(client=client, tuid=tuid,
@@ -178,3 +164,22 @@ def add_results(request):
                 return {'success': True}
     raise HTTPNotFound()  # Return 404 in unexpected cases, cover tracks
 
+
+def add_or_update_address(session, client, address):
+    """
+    Implements functionalty to add or update address field.
+    :param address:
+    :param client:
+    :param now:
+    :return:
+    """
+    now = datetime.now()
+
+    # See if this address is already associated with us
+    if session.query(Address).filter_by(address=address).count():
+        address = session.query(Address).filter_by(address=address).one()
+        address.last_seen = now
+    else:  # Create a new address if it's not already there
+        address = Address(address=address, first_seen=now, last_seen=now)
+        address.client = client
+        session.add(address)
