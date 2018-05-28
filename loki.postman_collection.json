@@ -1,0 +1,184 @@
+{
+	"info": {
+		"_postman_id": "c1df70b9-827a-4f32-a49d-5aa3b9af4a80",
+		"name": "loki",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "RavenReg",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "ehlo",
+							"value": "cmd",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:6543/api/game/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6543",
+					"path": [
+						"api",
+						"game",
+						"login"
+					]
+				},
+				"description": "Testing endpoints"
+			},
+			"response": []
+		},
+		{
+			"name": "GetTaskAsClient",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "cuid",
+							"value": "3d1d00d9ad00cd67",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "key",
+							"value": "6f9b7f4ed44c0fa8aee31bb56afcf58e",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:6543/api/game",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6543",
+					"path": [
+						"api",
+						"game"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CreateTask",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "cmd",
+							"value": "ping 8.8.8.8",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:6543/api/game/commander/3d1d00d9ad00cd67",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6543",
+					"path": [
+						"api",
+						"game",
+						"commander",
+						"3d1d00d9ad00cd67"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetTaskList",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:6543/api/game/commander/3d1d00d9ad00cd67",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6543",
+					"path": [
+						"api",
+						"game",
+						"commander",
+						"3d1d00d9ad00cd67"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PutTaskResults",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "cuid",
+							"value": "3d1d00d9ad00cd67",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "key",
+							"value": "6f9b7f4ed44c0fa8aee31bb56afcf58e",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "tuid",
+							"value": "ce0165caf6ed1a6d",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "data",
+							"value": "results of the ping command",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:6543/api/game",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6543",
+					"path": [
+						"api",
+						"game"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
