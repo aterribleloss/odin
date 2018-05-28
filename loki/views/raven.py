@@ -1,7 +1,7 @@
 from cornice import Service
 from ..models import Client, Address, Task, Status
 from secrets import token_hex
-import pyramid.exceptions as exc
+from pyramid.httpexceptions import HTTPNoContent, HTTPBadRequest, HTTPNotFound
 from datetime import datetime
 
 
@@ -53,7 +53,7 @@ def add_task(request):
                     created=now, status=status, client=client)
         request.dbsession.add(task)
         return {'tuid': task.tuid}
-    raise exc.HTTPBadRequest()
+    raise HTTPBadRequest()
 
 
 @raven_operator_task.get()
@@ -88,12 +88,9 @@ def get_login(request):
         request.dbsession.add(client)
         address.client = client
         request.dbsession.add(address)
-        response = {}
-        raven = {'cuid': client.cuid, 'key': client.key}
-        response['raven'] = raven
-        return response
+        return {'cuid': client.cuid, 'key': client.key}
 
-    raise exc.HTTPNotFound()  # thinly veiled cover up
+    raise HTTPNotFound()  # thinly veiled cover up
 
 
 @raven_task_board.post()
@@ -119,7 +116,8 @@ def get_task(request):
                 status = sesh.query(Status).filter_by(running=True).one()
                 task.status = status
                 return {'tuid': task.tuid, 'cmd': task.command}
-    raise exc.HTTPNotFound()
+            return HTTPNoContent()
+    raise HTTPNotFound()
 
 
 @raven_task_board.put()
@@ -149,5 +147,5 @@ def add_results(request):
                 task.status = status
                 task.completed = datetime.now()
                 return {'success': True}
-    raise exc.HTTPNotFound()
+    raise HTTPNotFound()
 
