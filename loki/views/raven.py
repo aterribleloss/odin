@@ -25,7 +25,7 @@ raven_task_board = Service(name='raventask',
 @raven_operator_cuid.get()
 def list_tasks(request):
     """
-    Operator Function: Gets a list of tasks for a given cuid, no pagination yet.
+    Operator Function: Gets a list of tasks for a given cuid, no pagination yet
     :param request:
     :return:
     """

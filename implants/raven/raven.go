@@ -156,6 +156,7 @@ func runCmd(timeout int, request string) string {
 		if err := cmd.Process.Kill(); err != nil {
 			return "Timeout Reached, Failed to Kill:\n" + err.Error()
 		}
+		<-done
 		return "Timeout Reached:\n" + buf.String()
 	case err := <-done:
 		if err != nil {
