@@ -9,7 +9,6 @@ This module includes the SQLAlchemy model for ip objects.
 from sqlalchemy import Column, String, TIMESTAMP, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from .meta import Base
-import json
 
 
 class Address(Base):

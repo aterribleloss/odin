@@ -76,7 +76,8 @@ Below is a quick run through which should get your C2 up and running.
     env/bin/python setup.py develop
 - Configure the database.
     env/bin/initialize_odin_db etc/development.ini
-- Run your project's tests. (Future, use Postman for manual testing currently)
+- Run your project's tests. (Future, use Postman for manual testing, 
+  see loki.postman_collection.json)
     env/bin/pytest
 - Run your project.
     env/bin/pserve etc/development.ini

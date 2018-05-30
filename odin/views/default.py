@@ -4,7 +4,7 @@ from pyramid.view import view_config
 from sqlalchemy.exc import DBAPIError
 
 
-@view_config(route_name='home', renderer='../templates/mytemplate.jinja2')
+@view_config(route_name='home', renderer='../templates/defaultdefault.jinja2')
 def my_view(request):
     return {'one': 'hello', 'project': 'odin'}
 

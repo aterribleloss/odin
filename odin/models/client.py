@@ -9,7 +9,6 @@ This module includes the SQLAlchemy Model for Client objects
 from sqlalchemy import Column, String, TIMESTAMP
 from .meta import Base
 from sqlalchemy.orm import relationship
-import json
 
 
 class Client(Base):
