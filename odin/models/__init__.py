@@ -56,7 +56,7 @@ def includeme(config):
     """
     Initialize the model for a Pyramid app.
 
-    Activate this setup using ``config.include('loki.models')``.
+    Activate this setup using ``config.include('odin.models')``.
 
     """
     settings = config.get_settings()

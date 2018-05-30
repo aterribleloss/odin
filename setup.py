@@ -30,9 +30,9 @@ tests_require = [
 ]
 
 setup(
-    name='loki',
+    name='odin',
     version='0.0',
-    description='loki',
+    description='odin',
     long_description=README + '\n\n' + CHANGES,
     classifiers=[
         'Programming Language :: Python',
@@ -53,10 +53,10 @@ setup(
     install_requires=requires,
     entry_points={
         'paste.app_factory': [
-            'main = loki:main',
+            'main = odin:main',
         ],
         'console_scripts': [
-            'initialize_loki_db = loki.scripts.initializedb:main',
+            'initialize_odin_db = odin.scripts.initializedb:main',
         ],
     },
 )

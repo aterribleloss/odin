@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Serve as a client to the Loki C2
+// Serve as a client to the odin C2
 package main
 
 import (
