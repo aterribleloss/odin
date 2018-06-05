@@ -82,7 +82,7 @@ def get_task(request):
     client = request.dbsession.query(Client).filter_by(cuid=cuid).one()
     task = request.dbsession.query(Task).filter_by(client=client,
                                                    tuid=tuid).one()
-    return {task.to_json()}
+    return task.to_json()
 
 
 @raven_registration.post()
