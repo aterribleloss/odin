@@ -5,6 +5,10 @@ from pyramid.httpexceptions import HTTPNoContent, HTTPBadRequest, HTTPNotFound
 from datetime import datetime
 
 # Operator Endpoints
+raven_operator_list_clients = Service(name='ravenoplistclients',
+                                      path='/api/game/commander',
+                                      description='List all clients')
+
 raven_operator_cuid = Service(name='ravenopuid',
                               path='/api/game/commander/{cuid}',
                               description='Operator tasks with a single cuid')
@@ -12,6 +16,8 @@ raven_operator_cuid = Service(name='ravenopuid',
 raven_operator_task = Service(name='ravenoptask',
                               path='/api/game/commander/{cuid}/{tuid}',
                               description='Single task in a cuid')
+
+
 # Client Endpoints
 raven_registration = Service(name='ravenreg',
                              path='/api/game/login',
@@ -21,6 +27,16 @@ raven_task_board = Service(name='raventask',
                            path='/api/game',
                            description='Communicate with raven tasks')
 
+
+@raven_operator_list_clients.get()
+def list_clients(request):
+    """
+    Operator Function: List all clients, no pagination yet
+    :param request:
+    :return:
+    """
+    clients = list(request.dbsession.query(Client).all())
+    return [t.to_json() for t in clients]
 
 @raven_operator_cuid.get()
 def list_tasks(request):
