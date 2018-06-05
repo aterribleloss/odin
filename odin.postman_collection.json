@@ -1,12 +1,12 @@
 {
 	"info": {
 		"_postman_id": "c1df70b9-827a-4f32-a49d-5aa3b9af4a80",
-		"name": "odin",
+		"name": "loki",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "RavenReg",
+			"name": "Client:RavenReg",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -39,7 +39,7 @@
 			"response": []
 		},
 		{
-			"name": "GetTaskAsClient",
+			"name": "Client:GetTask",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -76,7 +76,7 @@
 			"response": []
 		},
 		{
-			"name": "CreateTask",
+			"name": "Operator:CreateTask",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -92,7 +92,7 @@
 					]
 				},
 				"url": {
-					"raw": "http://localhost:6543/api/game/commander/3d1d00d9ad00cd67",
+					"raw": "http://localhost:6543/api/game/commander/6973c035f1062494",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -102,20 +102,20 @@
 						"api",
 						"game",
 						"commander",
-						"3d1d00d9ad00cd67"
+						"6973c035f1062494"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "GetTaskList",
+			"name": "Operator:GetTaskResults",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:6543/api/game/commander/3d1d00d9ad00cd67",
+					"raw": "http://localhost:6543/api/game/commander/6973c035f1062494/78d7981b73cdc6fd",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -125,14 +125,15 @@
 						"api",
 						"game",
 						"commander",
-						"3d1d00d9ad00cd67"
+						"6973c035f1062494",
+						"78d7981b73cdc6fd"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "PutTaskResults",
+			"name": "Client:PutTaskResults",
 			"request": {
 				"method": "PUT",
 				"header": [],
@@ -175,6 +176,28 @@
 					"path": [
 						"api",
 						"game"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Operator:GetClientList",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:6543/api/game/commander",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6543",
+					"path": [
+						"api",
+						"game",
+						"commander"
 					]
 				}
 			},
