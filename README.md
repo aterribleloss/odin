@@ -5,6 +5,7 @@
 Make a simple Command and Control (C2) / Implant pair for self education and to use as a training tool.  Initially named
 loki after a mech in the MechCommander franchise, I felt it better to just shift over to general norse mythology.
 
+Further discussion at [https://khoward.net/2018/06/04/odin.html](https://khoward.net/2018/06/04/odin.html)
 
 ## Technologies
 
