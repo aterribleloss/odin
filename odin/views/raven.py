@@ -1,8 +1,13 @@
 from cornice import Service
-from ..models import Client, Address, Task, Status
+from ..models import Client, Address, File, Task, Status
 from secrets import token_hex
 from pyramid.httpexceptions import HTTPNoContent, HTTPBadRequest, HTTPNotFound
 from datetime import datetime
+from shutil import copyfileobj
+from errno import EEXIST
+import os
+import hashlib
+
 
 # Operator Endpoints
 raven_operator_list_clients = Service(name='ravenoplistclients',
@@ -16,7 +21,6 @@ raven_operator_cuid = Service(name='ravenopuid',
 raven_operator_task = Service(name='ravenoptask',
                               path='/api/game/commander/{cuid}/{tuid}',
                               description='Single task in a cuid')
-
 
 # Client Endpoints
 raven_registration = Service(name='ravenreg',
@@ -38,6 +42,7 @@ def list_clients(request):
     clients = list(request.dbsession.query(Client).all())
     return [t.to_json() for t in clients]
 
+
 @raven_operator_cuid.get()
 def list_tasks(request):
     """
@@ -58,15 +63,64 @@ def add_task(request):
     :param request:
     :return:
     """
+    # Avoid queries if no matching keywords exist
+    cmds = ['cmd', 'fileverb']
+
+    if not any(x in request.POST.keys() for x in cmds):
+        raise HTTPBadRequest()
+
+    cuid = request.matchdict['cuid']
+    client = request.dbsession.query(Client).filter_by(cuid=cuid).one()
+    status = request.dbsession.query(Status).filter_by(pending=True).one()
+    tuid = token_hex(8)
+    now = datetime.now()
+
     if 'cmd' in request.POST.keys():
-        cuid = request.matchdict['cuid']
-        client = request.dbsession.query(Client).filter_by(cuid=cuid).one()
-        status = request.dbsession.query(Status).filter_by(pending=True).one()
-        now = datetime.now()
-        task = Task(tuid=token_hex(8), command=request.POST['cmd'],
+        task = Task(tuid=tuid, command=request.POST['cmd'],
                     created=now, status=status, client=client)
         request.dbsession.add(task)
         return {'tuid': task.tuid}
+    elif 'fileverb' in request.POST.keys():
+        verb = str(request.POST['fileverb']).lower().strip()
+        if verb == 'put':
+            if 'file' in request.POST.keys():
+                filename = request.POST['file'].filename
+                file = request.POST['file'].file
+                outfile = os.path.join('infil', cuid, tuid)
+
+                # Temp file for larger file writes / race conditions
+                temp = outfile + '~'
+
+                # Make intermediary dirs
+                if not os.path.exists(os.path.dirname(outfile)):
+                    try:
+                        os.makedirs(os.path.dirname(outfile))
+                    except OSError as e:  # this fixes a race condition
+                        if e.errno != EEXIST:
+                            raise
+
+                # Write data
+                file.seek(0)
+                with open(temp, 'wb') as target:
+                    copyfileobj(file, target)
+                # Move the temp to real
+                os.rename(temp, outfile)
+                hash = hash_file(outfile)
+
+                task = Task(tuid=tuid, created=now, status=status,
+                            client=client)
+                file = File(name=filename, verb='put', location=outfile,
+                            hash=hash, task=task)
+                request.dbsession.add(file)
+                return {'tuid': task.tuid}
+        elif verb == 'get':
+            if 'path' in request.POST.keys():
+                task = Task(tuid=tuid, created=now, status=status,
+                            client=client)
+                file = File(remote_path=request.POST['path'], verb='get',
+                            task=task)
+                request.dbsession.add(file)
+                return {'tuid': task.tuid}
     raise HTTPBadRequest()
 
 
@@ -165,13 +219,13 @@ def add_results(request):
 
             add_or_update_address(request.dbsession, client,
                                   request.environ['REMOTE_ADDR'])
-            
+
             # Get running status
             running_status = sesh.query(Status).filter_by(running=True).one()
             if sesh.query(Task).filter_by(client=client, tuid=tuid,
                                           status=running_status).count():
                 # Find the task, update status, add results and completion time
-                task = sesh.query(Task).\
+                task = sesh.query(Task). \
                     filter_by(client=client, tuid=tuid).one()
                 status = sesh.query(Status).filter_by(done=True).one()
                 task.results = results
@@ -199,3 +253,23 @@ def add_or_update_address(session, client, address):
         address = Address(address=address, first_seen=now, last_seen=now)
         address.client = client
         session.add(address)
+
+
+def hash_file(file):
+    """
+    SHA1 Hashes file
+    :param file: file location
+    :return: SHA1 hash
+    """
+    buf = 65536
+
+    sha1 = hashlib.sha1()
+
+    with open(file, 'rb') as f:
+        while True:
+            data = f.read(buf)
+            if not data:
+                break
+            sha1.update(data)
+
+    return sha1.hexdigest()

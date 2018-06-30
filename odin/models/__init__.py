@@ -10,6 +10,7 @@ from .address import Address
 from .client import Client
 from .status import Status
 from .task import Task
+from .file import File
 
 # run configure_mappers after defining all of the models to ensure
 # all relationships can be setup

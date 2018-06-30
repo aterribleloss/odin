@@ -19,6 +19,7 @@ from ..models import Address
 from ..models import Client
 from ..models import Status
 from ..models import Task
+from ..models import File
 
 
 def usage(argv):

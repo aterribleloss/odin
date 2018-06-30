@@ -22,7 +22,7 @@ class Task(Base):
                 'completed': self.completed}
 
     tuid = Column(String, nullable=False)
-    command = Column(String, nullable=False)
+    command = Column(String)
     results = Column(String)
     created = Column(TIMESTAMP(timezone=True))
     completed = Column(TIMESTAMP(timezone=True))
@@ -30,3 +30,6 @@ class Task(Base):
     status = relationship('Status')
     client_id = Column(Integer, ForeignKey('client.rowid'))
     client = relationship('Client', back_populates='tasks')
+    file = relationship("File", uselist=False, back_populates="task")
+
+
