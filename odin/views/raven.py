@@ -2,6 +2,7 @@ from cornice import Service
 from ..models import Client, Address, File, Task, Status
 from secrets import token_hex
 from pyramid.httpexceptions import HTTPNoContent, HTTPBadRequest, HTTPNotFound
+from pyramid.response import FileResponse
 from datetime import datetime
 from shutil import copyfileobj
 from errno import EEXIST
@@ -104,13 +105,14 @@ def add_task(request):
                 with open(temp, 'wb') as target:
                     copyfileobj(file, target)
                 # Move the temp to real
+
                 os.rename(temp, outfile)
-                hash = hash_file(outfile)
+                h = hash_file(outfile)
 
                 task = Task(tuid=tuid, created=now, status=status,
                             client=client)
                 file = File(name=filename, verb='put', location=outfile,
-                            hash=hash, task=task)
+                            hash=h, task=task)
                 request.dbsession.add(file)
                 return {'tuid': task.tuid}
         elif verb == 'get':
@@ -189,9 +191,25 @@ def get_task(request):
                 # Find the task, update status, send task to client
                 task = sesh.query(Task).filter_by(client=client,
                                                   status=pending).one()
-                status = sesh.query(Status).filter_by(running=True).one()
-                task.status = status
-                return {'tuid': task.tuid, 'cmd': task.command}
+                if task.command is not None:
+                    status = sesh.query(Status).filter_by(running=True).one()
+                    task.status = status
+                    return {'tuid': task.tuid, 'cmd': task.command}
+                elif task.file is not None and task.file.verb == 'get':
+                    status = sesh.query(Status).filter_by(running=True).one()
+                    task.status = status
+                    return {'tuid': task.tuid, 'get': task.file.remote_path}
+                elif task.file is not None and task.file.verb == 'put':
+                    status = sesh.query(Status).filter_by(done=True).one()
+                    task.status = status
+                    response = FileResponse(
+                        task.file.location,
+                        request=request
+                    )
+                    response.content_disposition = 'attachment; filename="' + \
+                                                   task.file.name + '"'
+                    return response
+
             return HTTPNoContent()
     raise HTTPNotFound()  # Return 404 in unexpected cases, cover tracks
 

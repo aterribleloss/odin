@@ -20,7 +20,7 @@ class File(Base):
                 'type': self.type, 'location': self.location,
                 'remote_path': self.remote_path, 'hash': self.hash}
 
-    name = Column(String, nullable=False)
+    name = Column(String)
     verb = Column(String, nullable=False)  # put, get
     type = Column(String)  # TODO use python-magic to determine type
     location = Column(String)
