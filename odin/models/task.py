@@ -25,12 +25,12 @@ class Task(Base):
                         'file': self.file.to_json(),
                         'status': self.status.name, 'results': self.results,
                         'client': self.client.cuid, 'created': self.created,
-                        'completed': self.completed}
+                        'completed': self.completed, 'error': self.error}
 
         return {'tuid': self.tuid, 'type': t, 'status': self.status.name,
                 'command': self.command, 'results': self.results,
                 'client': self.client.cuid, 'created': self.created,
-                'completed': self.completed}
+                'completed': self.completed, 'error': self.error}
 
     tuid = Column(String, nullable=False)
     command = Column(String)
@@ -42,5 +42,6 @@ class Task(Base):
     client_id = Column(Integer, ForeignKey('client.rowid'))
     client = relationship('Client', back_populates='tasks')
     file = relationship("File", uselist=False, back_populates="task")
+    error = Column(String)
 
 

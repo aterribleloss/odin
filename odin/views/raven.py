@@ -10,6 +10,7 @@ import os
 import hashlib
 
 
+
 # Operator Endpoints
 raven_operator_list_clients = Service(name='ravenoplistclients',
                                       path='/api/game/commander',
@@ -28,9 +29,15 @@ raven_registration = Service(name='ravenreg',
                              path='/api/game/login',
                              description='Setup uid, key')
 
+raven_result_handler = Service(name='ravenupload',
+                               path='/api/game/achievement',
+                               description='Accept multipart POST results')
+
 raven_task_board = Service(name='raventask',
                            path='/api/game',
                            description='Communicate with raven tasks')
+
+
 
 
 @raven_operator_list_clients.get()
@@ -94,19 +101,14 @@ def add_task(request):
                 temp = outfile + '~'
 
                 # Make intermediary dirs
-                if not os.path.exists(os.path.dirname(outfile)):
-                    try:
-                        os.makedirs(os.path.dirname(outfile))
-                    except OSError as e:  # this fixes a race condition
-                        if e.errno != EEXIST:
-                            raise
+                make_intermediary_dirs(outfile)
 
                 # Write data
                 file.seek(0)
                 with open(temp, 'wb') as target:
                     copyfileobj(file, target)
-                # Move the temp to real
 
+                # Rename the temp to real
                 os.rename(temp, outfile)
                 h = hash_file(outfile)
 
@@ -215,13 +217,16 @@ def get_task(request):
     raise HTTPNotFound()  # Return 404 in unexpected cases, cover tracks
 
 
-@raven_task_board.put()
+@raven_result_handler.post()
 def add_results(request):
     """
     Client Function: Submit task results to job board
     :param request:
     :return:
     """
+    herp = request.POST.dict_of_lists()
+    print(herp)
+
     if set(['cuid', 'key', 'tuid', 'data']).issubset(request.POST.keys()):
         cuid = request.POST['cuid']
         key = request.POST['key']
@@ -250,6 +255,29 @@ def add_results(request):
                 task.results = results
                 task.status = status
                 task.completed = datetime.now()
+
+                if 'file' in request.POST.keys():
+                    file = request.POST['file']
+                    # Some cases may include a success with no file
+                    if not file.filename:
+                        return{'success': True}
+                    fn = os.path.basename(file.filename)
+                    outfile = os.path.join('exfil', cuid, tuid)
+                    temp = outfile + '~'
+
+                    # Make intermediary dirs
+                    make_intermediary_dirs(outfile)
+
+                    with open(temp, 'wb') as target:
+                        copyfileobj(file.file, target)
+
+                    # Rename the temp to real
+                    os.rename(temp, outfile)
+                    h = hash_file(outfile)
+
+                    file = File(name=fn, verb='get',
+                                location=outfile, hash=h, task=task)
+                    request.dbsession.add(file)
                 return {'success': True}
     raise HTTPNotFound()  # Return 404 in unexpected cases, cover tracks
 
@@ -292,3 +320,17 @@ def hash_file(file):
             sha1.update(data)
 
     return sha1.hexdigest()
+
+def make_intermediary_dirs(filepath):
+    """
+    Makes all the directories for a given file target
+    :param filepath:
+    :return:
+    """
+    # Make intermediary dirs
+    if not os.path.exists(os.path.dirname(filepath)):
+        try:
+            os.makedirs(os.path.dirname(filepath))
+        except OSError as e:  # this fixes a race condition
+            if e.errno != EEXIST:
+                raise
