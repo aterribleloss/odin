@@ -29,9 +29,9 @@ raven_registration = Service(name='ravenreg',
                              path='/api/game/login',
                              description='Setup uid, key')
 
-raven_result_handler = Service(name='ravenupload',
-                               path='/api/game/achievement',
-                               description='Accept multipart POST results')
+raven_file_result_handler = Service(name='ravenupload',
+                                    path='/api/game/achievement',
+                                    description='Accept multipart POST results')
 
 raven_task_board = Service(name='raventask',
                            path='/api/game',
@@ -217,7 +217,7 @@ def get_task(request):
     raise HTTPNotFound()  # Return 404 in unexpected cases, cover tracks
 
 
-@raven_result_handler.post()
+@raven_file_result_handler.post()
 def add_results(request):
     """
     Client Function: Submit task results to job board

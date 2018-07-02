@@ -254,7 +254,6 @@ func sendFile(tuid string, path string) bool {
 		if err = mpw.Close(); err != nil {
 			db.WriteString(err.Error())
 		}
-
 	}()
 
 	resp, err := http.Post(apiRoot+drop, mpw.FormDataContentType(), r)
