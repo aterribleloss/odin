@@ -49,6 +49,8 @@ Theoretically this should be able to be a single binary on Android, iOS, and the
 very short amount of time, with a lot more features coming.  Using the raven view in the C2, the execution flow is 
 currently:
 
+GitHub does not support [mermaid](https://mermaidjs.github.io/), click [here](https://mermaidjs.github.io/mermaid-live-editor/#/view/Z3JhcGggVEQ7DQogICAgMS5QT1NUOi9hcGkvZ2FtZS9sb2dpbi0tPjIuUE9TVDovYXBpL2dhbWU7DQogICAgMi5QT1NUOi9hcGkvZ2FtZS0tPjMuUFVUOi9hcGkvZ2FtZTsNCiAgICAyLlBPU1Q6L2FwaS9nYW1lLS0+NC5QT1NUOi9hcGkvZ2FtZS9hY2hpZXZlbWVudDsNCiAgICAzLlBVVDovYXBpL2dhbWUtLT4yLlBPU1Q6L2FwaS9nYW1lOw0KICAgIDQuUE9TVDovYXBpL2dhbWUvYWNoaWV2ZW1lbnQtLT4yLlBPU1Q6L2FwaS9nYW1lOw==) for graph image.
+
 ```mermaid
 graph TD;
     1.POST:/api/game/login-->2.POST:/api/game;
