@@ -43,20 +43,29 @@ See the `implants` directory for source.  As this grows I may break them out int
 
 #### Raven
 
-Raven is an implant written in [Go](https://golang.org) that allows command execution on a variety of platforms.
+Raven is an implant written in [Go](https://golang.org) that allows command execution and file infil/exfil on a variety of platforms.
 Theoretically this should be able to be a single binary on Android, iOS, and the list of operating systems at 
 [golang/go/wiki](https://github.com/golang/go/wiki/MinimumRequirements).  This is a beaconing implant, developed in a
 very short amount of time, with a lot more features coming.  Using the raven view in the C2, the execution flow is 
 currently:
 
+```mermaid
+graph TD;
+    1.POST:/api/game/login-->2.POST:/api/game;
+    2.POST:/api/game-->3.PUT:/api/game;
+    2.POST:/api/game-->4.POST:/api/game/achievement;
+    3.PUT:/api/game-->2.POST:/api/game;
+    4.POST:/api/game/achievement-->2.POST:/api/game;
+```
+
   1. `HTTP POST` Contact registration endpoint, provide a 'command hint' which should let users know what shell they
   have, get cuid and key
   2. `HTTP POST` Loop at beaconing interval and contact the taskboard with cuid and key for each loop.
-  3. If a task is given, execute the task, gathering STDIO along the way and killing the process at a given timeout.
-  4. `HTTP PUT` Results of the execution to the taskboard endpoint
-  5. Continue at 2. 
+  3. If a task or infil is given, execute the task, gathering STDIO along the way and killing the process at a given timeout.  `HTTP PUT` Results of the execution to the taskboard endpoint
+  4. If an exfil is given, grab the file and `HTTP POST` to file result handler endpoint.
+  5. For both 3 and 4, continue loop at 2
   
-Future features of this include more reliability, putting and getting files, actually testing across different 
+Future features of this include more reliability, actually testing across different 
 platforms, a semi-interactive web shell (think of those old PHP shells), etc.  My personal goal is to provide a web
 shell interface to each individual endpoint.
 
