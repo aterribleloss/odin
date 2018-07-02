@@ -16,13 +16,24 @@ class Task(Base):
     Provides commands and stores results
     """
     def to_json(self):
-        return {'tuid': self.tuid, 'command': self.command,
-                'status': self.status.name, 'results': self.results,
+        t = 'error'
+        if self.command is None:
+            t = 'cmd'
+            if self.file is not None:
+                t = 'file'
+                return {'tuid': self.tuid, 'type': t,
+                        'file': self.file.to_json(),
+                        'status': self.status.name, 'results': self.results,
+                        'client': self.client.cuid, 'created': self.created,
+                        'completed': self.completed, 'error': self.error}
+
+        return {'tuid': self.tuid, 'type': t, 'status': self.status.name,
+                'command': self.command, 'results': self.results,
                 'client': self.client.cuid, 'created': self.created,
-                'completed': self.completed}
+                'completed': self.completed, 'error': self.error}
 
     tuid = Column(String, nullable=False)
-    command = Column(String, nullable=False)
+    command = Column(String)
     results = Column(String)
     created = Column(TIMESTAMP(timezone=True))
     completed = Column(TIMESTAMP(timezone=True))
@@ -30,3 +41,7 @@ class Task(Base):
     status = relationship('Status')
     client_id = Column(Integer, ForeignKey('client.rowid'))
     client = relationship('Client', back_populates='tasks')
+    file = relationship("File", uselist=False, back_populates="task")
+    error = Column(String)
+
+
