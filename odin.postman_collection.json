@@ -39,44 +39,7 @@
 			"response": []
 		},
 		{
-			"name": "Client:GetTask",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "cuid",
-							"value": "3d1d00d9ad00cd67",
-							"description": "",
-							"type": "text"
-						},
-						{
-							"key": "key",
-							"value": "6f9b7f4ed44c0fa8aee31bb56afcf58e",
-							"description": "",
-							"type": "text"
-						}
-					]
-				},
-				"url": {
-					"raw": "http://localhost:6543/api/game",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "6543",
-					"path": [
-						"api",
-						"game"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Operator:CreateTask",
+			"name": "Operator:CreateTaskCmd",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -92,7 +55,7 @@
 					]
 				},
 				"url": {
-					"raw": "http://localhost:6543/api/game/commander/6973c035f1062494",
+					"raw": "http://localhost:6543/api/game/commander/534c692f64930e0b",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -102,20 +65,35 @@
 						"api",
 						"game",
 						"commander",
-						"6973c035f1062494"
+						"534c692f64930e0b"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Operator:GetTaskResults",
+			"name": "Operator:CreateTaskInfil",
 			"request": {
-				"method": "GET",
+				"method": "POST",
 				"header": [],
-				"body": {},
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "fileverb",
+							"value": "put",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "file",
+							"description": "",
+							"type": "file"
+						}
+					]
+				},
 				"url": {
-					"raw": "http://localhost:6543/api/game/commander/6973c035f1062494/78d7981b73cdc6fd",
+					"raw": "http://localhost:6543/api/game/commander/9271b1ee33f76d39",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -125,8 +103,83 @@
 						"api",
 						"game",
 						"commander",
-						"6973c035f1062494",
-						"78d7981b73cdc6fd"
+						"9271b1ee33f76d39"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Operator:CreateTaskExfil",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "fileverb",
+							"value": "get",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "path",
+							"value": "foo.txt",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:6543/api/game/commander/a69bde61f2ca1863",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6543",
+					"path": [
+						"api",
+						"game",
+						"commander",
+						"a69bde61f2ca1863"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client:GetTask",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "cuid",
+							"value": "efe24c3e502154f2",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "key",
+							"value": "f5a5065a597260ddfca5208e99760908",
+							"description": "",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:6543/api/game",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6543",
+					"path": [
+						"api",
+						"game"
 					]
 				}
 			},
@@ -176,6 +229,85 @@
 					"path": [
 						"api",
 						"game"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client:PostFileUpload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "cuid",
+							"value": "8c3e10394c3536b7",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "key",
+							"value": "d2942d480d987efb1fe3a1e5933d77c3",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "tuid",
+							"value": "3d00d0b26dba2d0d",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "data",
+							"value": "results of the ping command",
+							"description": "",
+							"type": "text"
+						},
+						{
+							"key": "file",
+							"description": "",
+							"type": "file"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:6543/api/game/achievement",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6543",
+					"path": [
+						"api",
+						"game",
+						"achievement"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Operator:GetTaskResults",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:6543/api/game/commander/6973c035f1062494/78d7981b73cdc6fd",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "6543",
+					"path": [
+						"api",
+						"game",
+						"commander",
+						"6973c035f1062494",
+						"78d7981b73cdc6fd"
 					]
 				}
 			},
