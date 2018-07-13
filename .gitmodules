@@ -1,0 +1,3 @@
+[submodule "implants/crow/logc"]
+	path = implants/crow/logc
+	url = https://github.com/rxi/log.c
