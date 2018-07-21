@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 typedef enum {
 	NOTASK = 0,
 	CMD,
