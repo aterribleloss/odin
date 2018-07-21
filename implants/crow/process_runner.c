@@ -4,25 +4,19 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/time.h>
 
 #include "process_runner.h"
 
 #include "logc/src/log.h"
 
 
-/*
-    Read data into a buffer
+#define max(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b; })
 
-    Resizes the buffer as necessary
-    fd:
-        the fd to read from
-    buf:
-        pointer to the char* buffer to read into
-    buf_len:
-        pointer to the length of data in buf
-    buf_buf_len:
-        pointer to the actual length of buf
-*/
+
 ssize_t readsome(int fd, char ** buf, size_t * buf_len, size_t * buf_buf_len) {
     size_t remaining = *buf_buf_len - *buf_len;
     if(remaining == 0) {
@@ -46,10 +40,10 @@ ssize_t readsome(int fd, char ** buf, size_t * buf_len, size_t * buf_buf_len) {
     return numread;
 }
 
-/*
-    Run a shell command and return stdout/stderr/retcode
-*/
+
 cmd_ret_t run_cmd(char * command_hint, char * command_arg_zero, char * command, long cmd_timeout) {
+
+    
     cmd_ret_t cmd_ret = {
         0,
         0,
@@ -100,38 +94,52 @@ cmd_ret_t run_cmd(char * command_hint, char * command_arg_zero, char * command, 
         close(stdout_pipe[1]);
         close(stderr_pipe[1]);
         log_trace("Closed write pipes");
-        
-        int stdout_open = 1;
-        int stderr_open = 1;
+
+        struct timeval timeout = {cmd_timeout, 0};
+
+
+
         int still_reading = 1;
         int status;
         ssize_t num_read = 0;
-        while(still_reading && (stdout_open || stderr_open)) {
+        fd_set readfds;
+        int nfds = max(stdout_pipe[0], stderr_pipe[0]) + 1;
+        if(nfds > FD_SETSIZE) {
+            log_fatal("File descriptors are too large for select");
+            return cmd_ret;
+        }
+        while(still_reading) {
             log_trace("Reading...");
             waitpid(cpid, &status, WNOHANG);
             if(WIFEXITED(status) || WIFSIGNALED(status)) {
                 still_reading = 0;
                 log_trace("Child has exited or signaled");
             }
-            if(stdout_open) {
-                num_read = readsome(stdout_pipe[0], &cmd_ret.stdout, &cmd_ret.stdout_len, &cmd_ret.stdout_buf_len);
-                if(num_read == -1) {
-                    stdout_open = 0;
-                    log_trace("Stdout closed");
-                }
-                if(num_read > 0) {
-                    still_reading = 1;
-                }
+
+            FD_ZERO(&readfds);
+            FD_SET(stdout_pipe[0], &readfds);
+            FD_SET(stderr_pipe[0], &readfds);
+            
+            int ready = select(nfds, &readfds, NULL, NULL, &timeout);
+            if(ready == -1) {
+                log_error("Select failure");
+                return cmd_ret;
             }
-            if(stderr_open) {
-                num_read = readsome(stderr_pipe[0], &cmd_ret.stderr, &cmd_ret.stderr_len, &cmd_ret.stderr_buf_len);
-                if(num_read == -1) {
-                    stderr_open = 0;
-                    log_trace("Stderr closed");
+
+            if(ready) {
+                if(FD_ISSET(stdout_pipe[0], &readfds)) {
+                    num_read = readsome(stdout_pipe[0], &cmd_ret.stdout, &cmd_ret.stdout_len, &cmd_ret.stdout_buf_len);
+                    if(num_read > 0) {
+                        still_reading = 1;
+                    }
                 }
-                if(num_read > 0) {
-                    still_reading = 1;
+                if(FD_ISSET(stderr_pipe[0], &readfds)) {
+                    num_read = readsome(stderr_pipe[0], &cmd_ret.stderr, &cmd_ret.stderr_len, &cmd_ret.stderr_buf_len);
+                    if(num_read > 0) {
+                        still_reading = 1;
+                    }
                 }
+
             }
         }
 
@@ -162,6 +170,9 @@ void print_cmd_ret(cmd_ret_t cmd_ret) {
 
 #ifdef TESTING
 
+/*
+    Read from stdin into a cmd_ret and print progress
+*/
 void test_readsome() {
     cmd_ret_t cmd_ret = {
         0,
@@ -187,11 +198,15 @@ void test_run_cmd(char * cmd, long timeout) {
     print_cmd_ret(cmd_ret);
 }
 
-void main() {
+int main() {
     log_set_level(LOG_TRACE);
     // test_readsome();
-    // test_run_cmd("ls -lah", 1);
-    test_run_cmd("yes", 1);
+    test_run_cmd("ls -lah", 1);
+    // test_run_cmd("for i in 1 2 3 4 5 6 7 8 9 0; do sleep 1; echo hello; done", 5);
+    // test_run_cmd("echo 'this is stdout' && echo 'this is stderr' 1>&2", 1);
+    return 0;
 }
+
+
 
 #endif
